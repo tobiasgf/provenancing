@@ -43,21 +43,6 @@ new_theme_empty$plot.margin <- structure(c(0, 0, 0, 0), unit = "lines", valid.un
 
 #make plot
 plot1 <- ggplot() + 
- geom_polygon(data=dk_basic, aes(x=long,y=lat,group=group,fill=id)) + 
- scale_fill_manual(values=c("#E0E0E0","#F5F5F5")) +
-  geom_point(data=col_data2,aes(ddlong,ddlat, size=number, col=parameter),pch = 21, stroke = 1, alpha = 0.02, position = position_jitter(w = 0.02, h = 0.02)) +  
- scale_color_manual(name="Distribution", breaks = c("rareSpsSSE","rareSpsE","rareSpsW"), labels=c("S/SE","E","W"), values=c('green','blue','red')) +
- geom_path(data=dk_basic, aes(x=long,y=lat,group=group), colour='black', size = 0.5) + 
- new_theme_empty + 
- theme(panel.background=element_rect(fill = "white"), legend.position = "right") +
- coord_fixed(ratio = 1.79) + 
- guides(fill = FALSE, color = guide_legend(order=1), size = guide_legend(order=2)) + 
- scale_size_continuous(name="Number of plants", range = c(4, 15), breaks =c(1,2,4,10)) #+ facet_wrap(.~parameter)
-
-ggsave(here::here("plots","FigureS1.pdf"), plot1, width = 10, height = 10, device = "pdf")
-
-
-plot1 <- ggplot() + 
  geom_polygon(data=dk_basic, aes(x=long,y=lat,group=group), fill="gray80") + 
   geom_point(data=col_data2,aes(ddlong,ddlat, size=number, fill=parameter),pch = 21, stroke = 0.1, alpha = 0.6, position = position_jitter(w = 0.02, h = 0.02)) +  
  scale_fill_manual(name="Distribution", breaks = c("rareSpsSSE","rareSpsE","rareSpsW"), labels=c("S/SE","E","W"), values=c('darkseagreen4','dodgerblue4','brown')) +
@@ -68,6 +53,6 @@ plot1 <- ggplot() +
  guides(fill = guide_legend(order=1, override.aes = list(size=5)), size = guide_legend(order=2)) + 
  scale_size_continuous(name="Number of plants", range = c(1, 20), breaks =c(1,2,4,10)) + facet_wrap(.~parameter)
 
-ggsave(here::here("plots","FigureS1.pdf"), plot1, width = 12, height = 4, device = "pdf")
+ggsave(here::here("plots","FigureS1n.pdf"), plot1, width = 12, height = 4, device = "pdf")
 
 ```

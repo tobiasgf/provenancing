@@ -8,7 +8,7 @@ output: html_document
 #### get data and make initial processing ####  
 intermediate data from these steps not included in this GitHub repository  
 
-download sequence data from: ADDDD!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+download sequence data from: Will be added upon accept of publication
 
 demultiplex the data using the tag-info files available in the seq_processing sub-directory "eukaryotes" and the script (DADA2_demultiplex.sh) from: https://github.com/tobiasgf/man_vs_machine/blob/master/seq_processing/DADA2_demultiplex.sh  
 

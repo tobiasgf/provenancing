@@ -32,7 +32,7 @@ vsearch --cluster_size all_otus_concatenated.fas --id 0.97 --strand plus --sizei
 (all_plant.otutab.txt is included in this project)
 
 Get blasthits using custom script: split_and_blast.sh   
-bash spilt_and_blast.sh  all.otus.fasta  
+bash split_and_blast.sh  all.otus.fasta  
 (the resulting file "all.otus.fasta.blasthits" is included in this project)
 
 lulu matchlist   
@@ -127,4 +127,3 @@ controls_otu_tab_pa <- edna_tab_pa[,-(1:130)]
 
 write.table(edna_tab, here::here("data","plant_table_final.txt"), sep = "\t", quote = F, row.names = F)
 ```
-
