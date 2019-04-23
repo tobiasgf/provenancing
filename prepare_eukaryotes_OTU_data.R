@@ -1,0 +1,32 @@
+# Analysis SoilTracker: preparing eukaryote OTU data
+# Manuscript: Predicting provenance of forensic soil samples: 
+# Linking soil to ecological habitats by metabarcoding and supervised classification
+# Author: Tobias Guldberg Frøslev
+# Date: 23-04-2019
+
+library(here)
+source(here::here("R","dereplicate.r"))
+ 
+#### get data and make initial processing ####  
+#intermediate data from these steps not included in this GitHub repository  
+
+#download sequence data from: https://sid.erda.dk/public/archives/3d227ac305559c1651c631d447983ff9/published-archive.html
+
+#demultiplex the data using the tag-info files available in the seq_processing sub-directory "eukaryotes" and the script (DADA2_demultiplex.sh) from: https://github.com/tobiasgf/man_vs_machine/blob/master/seq_processing/DADA2_demultiplex.sh  
+
+#Supply with resequenced data from sub_directory "extra_samples" (failed pcr triplicate for one sample)  
+
+#analyse using DADA2 implemented in the script (seq_processing) : dada2_v3.1.R  
+#  R<dada2_v3.1.R --no-save &>log.txt  
+#(needs info from file variables.txt in seq_processing/eukaryotes)  
+
+#Rename and proceed with the dada2 table with chimeras removed:  
+#  mv DADA2_nochim.table euk_DADA2_nochim.table  
+
+#### dereplicate (collapse pcr triplicates for each sample) ####  
+
+euk_raw_tab <- read.table(here::here("data","euk_DADA2_nochim.table"), sep="\t", header = T,row.names = 1) # see earlier steps in separate script
+euk_samples <- read.table(here::here("in_data","Sample_Site_Replication_BW_EUK.txt"), sep="\t", header = T,stringsAsFactors = F)
+euk_raw_derep <- dereplicate(euk_raw_tab, euk_samples, exclude_sites = c("BW","Bla","neg"))
+saveRDS(euk_raw_derep, here::here("data","euk_raw_derep.RDS"))
+```

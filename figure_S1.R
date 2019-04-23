@@ -1,13 +1,9 @@
----
-title: "Fig_map"
-author: "Tobias G Frøslev"
-date: "18/2/2019"
-output: html_document
-editor_options: 
-  chunk_output_type: console
----
+# Analysis SoilTracker: map figure
+# Manuscript: Predicting provenance of forensic soil samples: 
+# Linking soil to ecological habitats by metabarcoding and supervised classification
+# Author: Tobias Guldberg Frøslev
+# Date: 23-04-2019
 
-```{r}
 library(ggplot2)
 library(rgdal)
 library(raster)
@@ -21,7 +17,7 @@ library(tidyr)
 
 world <- readOGR(dsn = here::here("in_data","CNTR_RG_01M_2016_4326.shp"))
 
-# CUT TO DK AREA
+#cut to dk area
 dk_basic <- crop(world, extent(8, 13, 54.5, 57.8))
 dk_basic = fortify(dk_basic)
 dk_basic$id[dk_basic$id != "49"] <- "0"  # making all other countries the same for mapping colour
@@ -44,7 +40,7 @@ new_theme_empty$plot.margin <- structure(c(0, 0, 0, 0), unit = "lines", valid.un
 #make plot
 plot1 <- ggplot() + 
  geom_polygon(data=dk_basic, aes(x=long,y=lat,group=group), fill="gray80") + 
-  geom_point(data=col_data2,aes(ddlong,ddlat, size=number, fill=parameter),pch = 21, stroke = 0.1, alpha = 0.6, position = position_jitter(w = 0.02, h = 0.02)) +  
+ geom_point(data=col_data2,aes(ddlong,ddlat, size=number, fill=parameter),pch = 21, stroke = 0.1, alpha = 0.6, position = position_jitter(w = 0.02, h = 0.02)) +  
  scale_fill_manual(name="Distribution", breaks = c("rareSpsSSE","rareSpsE","rareSpsW"), labels=c("S/SE","E","W"), values=c('darkseagreen4','dodgerblue4','brown')) +
  #geom_path(data=dk_basic, aes(x=long,y=lat,group=group), colour='black', size = 0.5) + 
  new_theme_empty + 
@@ -54,5 +50,3 @@ plot1 <- ggplot() +
  scale_size_continuous(name="Number of plants", range = c(1, 20), breaks =c(1,2,4,10)) + facet_wrap(.~parameter)
 
 ggsave(here::here("plots","FigureS1n.pdf"), plot1, width = 12, height = 4, device = "pdf")
-
-```

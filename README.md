@@ -1,8 +1,8 @@
-# Predicting provenance of forensic soil samples - bioinformatic sequence analyses  
+# Predicting provenance of forensic soil samples - bioinformatic sequence analyses and ecological/provenancing modelling    
 ___
 
-This repository (R project) contains all data (and links to data) and scripts necessary to run the initial bioinformatic sequence processing analyses from the study  **Predicting provenance of forensic soil samples: Linking soil to ecological habitats by metabarcoding and supervised classification**  (in review for publication in PLoS ONE).  
-All steps/processes for this study can be carried out on the same computer/platform. But, in practise all analyses were carried out on a linux server setup with 64 processors (AMD Opteron(tm) 6380), except R-scripts, which were run on a MacBook Pro (2.9 GHz Intel Core i7, 16 GB 2133 MHz LPDDR3).
+This repository (R project) contains all data (and links to data) and scripts necessary to run the initial bioinformatic sequence processing analyses and statistical analyses (procenancing anayses) from the study  **Predicting provenance of forensic soil samples: Linking soil to ecological habitats by metabarcoding and supervised classification**  (in review for publication in PLoS ONE).  
+All steps/processes for this study can be carried out on the same computer/platform. But, in practise many of the bioinformatic analyses were carried out on a linux server setup with 64 processors (AMD Opteron(tm) 6380), except R-scripts, which were run on a MacBook Pro (2.9 GHz Intel Core i7, 16 GB 2133 MHz LPDDR3).
 All analyses were carried out in one directory and sub-directories of this.
 
 ## Sequencing data
@@ -20,7 +20,6 @@ https://sid.erda.dk/public/archives/3d227ac305559c1651c631d447983ff9/published-a
 #### Insect data - published here
 https://sid.erda.dk/public/archives/65a54fa35a5b4621a834fc58a2ce2619/published-archive.html
 
-
 ## Bioinformatic tools
 ### CLI tools were used for this study  
 
@@ -29,7 +28,7 @@ https://sid.erda.dk/public/archives/65a54fa35a5b4621a834fc58a2ce2619/published-a
  * blastn v2.4.0+ (ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/) 
  * sickle v.1.33 (https://github.com/najoshi/sickle)
  
-Various R-packages were used for this study (see in the relevant markdown files).  
+Various R-packages were used for this study (see in the relevant R files).  
 Variuous custom bash scripts used, are available in the seq_processing sub directory, and R-function available in the sub directory "R"  
 
 ## Description of the sub directories  
