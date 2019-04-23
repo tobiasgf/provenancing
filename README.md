@@ -15,10 +15,10 @@ https://sid.erda.dk/public/archives/b0d2b22cb7804ff23d1612f4afdc29ae/published-a
 https://datadryad.org/resource/doi:10.5061/dryad.n9077  
 
 #### Eukaryote data - published here
-Will be uploaded upon accept of publication
+https://sid.erda.dk/public/archives/3d227ac305559c1651c631d447983ff9/published-archive.html
 
 #### Insect data - published here
-Will be uploaded upon accept of publication
+https://sid.erda.dk/public/archives/65a54fa35a5b4621a834fc58a2ce2619/published-archive.html
 
 
 ## Bioinformatic tools

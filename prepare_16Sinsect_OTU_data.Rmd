@@ -8,7 +8,9 @@ output: html_document
 #### get data and make initial processing ####
 intermediate data from these steps not included in this GitHub repository
 
-download sequence data from: Will be added upon accept of publication
+download sequence data from (data from two MiSeq runs): https://sid.erda.dk/public/archives/65a54fa35a5b4621a834fc58a2ce2619/published-archive.html
+
+Combine reads from the two MiSeq runs, library wise.
 
 demultiplex the data using the tag-info files available in the seq_processing sub-directory "mt16S_insect" and the script: https://github.com/tobiasgf/man_vs_machine/blob/master/seq_processing/DADA2_demultiplex.sh
 
