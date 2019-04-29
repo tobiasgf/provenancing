@@ -1,4 +1,4 @@
-# Analysis SoilTracker: provenancing models
+# Analysis SoilTracker:
 # Manuscript: Predicting provenance of forensic soil samples: 
 # Linking soil to ecological habitats by metabarcoding and supervised classification
 # Author: Camilla Fløjgaard
@@ -8,8 +8,9 @@ library(here)
 library(MASS)
 library(mgcv)
 
+
 #### Data: environmental data, NMS-ordination-axes and habitat characteristics
-Data <- read.table(here::here("data","SoilTrackerData.txt")) # NMDS data added from the file "ordination_results.txt"
+Data <- read.table(here::here("data","SoilTrackerData.txt"), header = TRUE) # Data from file "ordination_results.txt" were added to this file manually first
 
 # Create a result file: 
 Prediction <- data.frame(Data[,1])
@@ -318,8 +319,8 @@ a$habchar <- "Coniferous"
 ResultBi <- rbind(ResultBi,a)
 
 ### Can sequences improve model fit? 
+#get sequence data from plants:
 Annotated <- read.table(here::here("data","plant_table_final.txt"), header=TRUE, sep="\t")
-#Annotated_v2 <- Annotated[which(Annotated$pident>=99),]
 freq.sums <- colSums(Annotated[1:130])
 OTUplanter.frequencies <- Annotated[,1:130]
 for (i in 1:130){
@@ -336,19 +337,10 @@ a$correctly.predicted[1] <- sum(diag(prop.table(best.cr)))
 a$true.positives[1] <- best.cr[2,2]/(best.cr[2,2]+best.cr[1,2])
 a$false.neg.sites[1] <- paste(Data$site_name[which(best.qda$class==0 & Data$Coniferous==1)],collapse=";")
 
-a #no true positives over 50%, don't ude this for modelling.  
+a #does not increase true positives to over 50%, don't use this for prediction.  
 a$habchar <- "ConiferousSeq"
 ResultBi <- rbind(ResultBi,a[1,])
 ResultBi[,c(1:3,5)]
-
-# Predicting using leave-one-out:
-pred.vector <- paste(a$best.vars[1])
-for (i in 1:130){
-  best.qda <- qda(as.matrix(Data[-i,paste(unlist(strsplit(pred.vector, split=" ")))]), Data$Coniferous[-i])
-  Pred <- predict(best.qda, newdata=Data[i,paste(unlist(strsplit(pred.vector, split=" ")))])
-  PredictionBi$CoSeqclass[i] <- Pred$class
-  PredictionBi$CoSeqpost[i] <- Pred$posterior[2]
-}
 
 ########### Beech ###########
 # Model selection: 
@@ -365,7 +357,7 @@ for (i in seq_along(primers)) {
   a$false.neg.sites[i] <- paste(Data$site_name[which(best.qda$class==0 & Data$Beech==1)],collapse=";")
 }
 
-a #fung maximizes both corretly.predicted. 
+a #fung maximizes corretly predicted. 
 a$habchar <- "Beech"
 ResultBi <- rbind(ResultBi,a)
 ResultBi[,c(1:3,5)]
@@ -411,7 +403,7 @@ for (i in seq_along(primers)) {
   a$false.neg.sites[i] <- paste(Data$site_name[which(best.qda$class==0 & Data$Oak==1)],collapse=";")
 }
 
-a #fung maximizes both corretly.predicted. 
+a #fung maximizes both corretly.predicted and true pos. 
 a$habchar <- "Oak"
 ResultBi <- rbind(ResultBi,a)
 ResultBi[,c(1:3,5)]
@@ -429,9 +421,9 @@ a$false.neg.sites[1] <- paste(Data$site_name[which(best.qda$class==0 & Data$Oak=
 a  
 a$habchar <- "OakSeq"
 ResultBi <- rbind(ResultBi,a[1,])
-ResultBi[,c(1:3,5)] #percentage correctly predicted improved, but true positives fell. 
+ResultBi[,c(1:3,5)] #percentage correctly predicted improved, but not true positives. 
 
-# Predicting using leave-one-out (run first model selection):
+# Predicting using leave-one-out (re-run first model):
 pred.vector <- paste(a$best.vars[1])
 for (i in 1:130){
   best.qda <- qda(as.matrix(Data[-i,paste(unlist(strsplit(pred.vector, split=" ")))]), Data$Oak[-i])
@@ -517,16 +509,8 @@ a
 a$habchar <- "EriSeq"
 ResultBi <- rbind(ResultBi,a[1,])
 ResultBi[,c(1:3,5)] 
-#correctly predicted decreases and true positives is only 50%
+# is not good enough for prediction
 
-#Predicting using leave-one-out:
-#pred.vector <- paste(a$best.vars[1])
-#for (i in 1:130){
-#  best.qda <- qda(as.matrix(Data[-i,paste(unlist(strsplit(pred.vector, split=" ")))]), Data$Heathland[-i])
-#  Pred <- predict(best.qda, newdata=Data[i,paste(unlist(strsplit(pred.vector, split=" ")))])
-#  PredictionBi$HLclass[i] <- Pred$class  
-#  PredictionBi$HLpost[i] <- Pred$posterior[2]
-#}
 
 ########### Dwarfshrubs ###########
 PredictionBi$Dwarfshrubs <- Data$Dwarfshrubs
@@ -558,14 +542,6 @@ for (i in 1:130){
 }
 
 ########### Alder ###########
-Abundance = data.frame(read_excel(here::here("data","BiowideAbundans.xlsx")))
-Alnus.sites <- Abundance$plot[which(Abundance$id =="Alnus_glutinosa" & Abundance$abundans ==3)]
-Data[Data$Site_nr %in% Alnus.sites,1:5]
-# efter vurdering af billeder:
-Alnus.sites2 <- Alnus.sites[-c(2,22,66,71,74)]
-Data$Alnus <- "0"
-Data$Alnus[which(Data$Site_nr %in% Alnus.sites2)] <-"1"
-
 PredictionBi$Alder <- Data$Alnus
 # Model selection: 
 for (i in seq_along(primers)) {
@@ -609,13 +585,6 @@ for (i in 1:130){
 }
 
 ########### Reed swamp ###########
-Phragmites.sites <- Abundance$plot[which(Abundance$id =="Phragmites_australis" & Abundance$abundans ==3)]
-Data[Data$Site_nr %in% Phragmites.sites,1:5]
-# efter vurdering af billeder:
-Phragmites.sites2 <- Phragmites.sites[-c(37,50,91,92)]
-Data$Phragmites <- "0"
-Data$Phragmites[which(Data$Site_nr %in% Phragmites.sites2)] <-"1"
-
 PredictionBi$Phragmites <- Data$Phragmites
 # Model selection: 
 for (i in seq_along(primers)) {
@@ -655,8 +624,8 @@ pred.vector <- paste(a$best.vars[1])
 for (i in 1:130){
   best.qda <- qda(as.matrix(Data[-i,paste(unlist(strsplit(pred.vector, split=" ")))]), Data$Willow[-i])
   Pred <- predict(best.qda, newdata=Data[i,paste(unlist(strsplit(pred.vector, split=" ")))])
-  PredictionBi$Wiclass[i] <- Pred$class
-  PredictionBi$Wipost[i] <- Pred$posterior[2]
+  PredictionBi$Phclass[i] <- Pred$class
+  PredictionBi$Phpost[i] <- Pred$posterior[2]
 }
 
 
@@ -678,14 +647,6 @@ a #no good models.
 a$habchar <- "Atlantic"
 ResultBi <- rbind(ResultBi,a)
 ResultBi[,c(1:3,5)]
-# Predicting using leave-one-out:
-#pred.vector <- paste(b$best.vars[1])
-#for (i in 1:130){
-#  best.qda <- qda(as.matrix(Data[-i,paste(unlist(strsplit(pred.vector, split=" ")))]), Data$Atlantic[-i])
-#  Pred <- predict(best.qda, newdata=Data[i,paste(unlist(strsplit(pred.vector, split=" ")))])
-#  PredictionBi$Atclass[i] <- Pred$class
-#  PredictionBi$Atpost[i] <- Pred$posterior[2]
-#}
 
 ########### Jutland ###########
 PredictionBi$Jutland <- Data$Jutland
@@ -715,5 +676,327 @@ for (i in 1:130){
 }
 
 write.table(PredictionBi, file=here::here("data","HabClassPredictions.txt"))
-write.table(format(ResultBi, digits=2), file=here:here("data","HabClassModelResults.txt"))
+write.table(format(ResultBi, digits=2), file=here::here("data","HabClassModelResults.txt"))
 
+############# Figures of Ellenberg ###############
+library(ggplot2)
+
+nul <- which(Data$stratum=="Field")
+en <- which(Data$bio_stratum=="Agricultural")
+to <- which(Data$bio_stratum=="EarlyDryPoor")
+tre <- which(Data$bio_stratum=="EarlyDryRich")
+fire <- which(Data$bio_stratum=="EarlyWetPoor")
+fem <- which(Data$bio_stratum=="EarlyWetRich")
+seks <- which(Data$bio_stratum=="LateDryPoor")
+syv <- which(Data$bio_stratum=="LateDryRich")
+otte <- which(Data$bio_stratum=="LateWetPoor")
+ni <- which(Data$bio_stratum=="LateWetRich")
+Data$new.stratum <- NA
+Data$new.stratum[en] <- "Farmland"
+Data$new.stratum[to] <- "Dry heath"
+Data$new.stratum[tre] <- "Dry grassland"
+Data$new.stratum[fire] <- "Mire"
+Data$new.stratum[fem] <- "Fen"
+Data$new.stratum[seks] <- "Moder forest"
+Data$new.stratum[syv] <- "Mull forest"
+Data$new.stratum[otte] <- "Forest mire"
+Data$new.stratum[ni] <- "Swamp forest"
+
+par(mar=c(5,8,2,2))
+
+pdf(width=5.5, height=4,"figures/Ellenberg_RL.pdf")
+a <- ggplot(Data[c(en,to,tre,seks,syv),], aes(ellenberg_r, ellenberg_l, color=new.stratum)) +
+  scale_x_continuous(name = "pH") + 
+  scale_y_continuous(name = "Light") +
+  stat_ellipse(type="norm",size=1.5) + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        legend.title=element_blank(), legend.key = element_rect(fill = "white"),
+        axis.text.x=element_text(colour="black"),
+        axis.text.y=element_text(colour="black"),
+        text = element_text(size=16))+
+  scale_colour_manual(values = c("Farmland" = "darkgrey", "Dry heath" = "darkorchid", 
+                                 "Dry grassland" = "orange", "Moder forest" = "yellowgreen", 
+                                 "Mull forest" = "darkgreen"))
+print(a)
+dev.off()
+
+pdf(width=5.5, height=4,"figures/Ellenberg_RF.pdf")
+b <- ggplot(Env[c(to,tre,fire,fem),], aes(ellenberg_r, ellenberg_f, color = new.stratum)) +
+  scale_x_continuous(name = "pH") + 
+  scale_y_continuous(name = "Moisture") +
+  stat_ellipse(type="norm",size=1.5) + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+        axis.text.x=element_text(colour="black"),
+        axis.text.y=element_text(colour="black"),
+        text = element_text(size=16))+
+  scale_colour_manual(values = c("Dry heath" = "darkorchid", "Dry grassland" = "orange", 
+                                 "Mire" = "springgreen", "Fen" = "hotpink"))
+print(b)
+dev.off()
+
+pdf(width=5.5, height=4,"figures/Ellenberg_FL.pdf")
+c <- ggplot(Data[c(to,fire,syv,otte),], aes(ellenberg_f, ellenberg_l, color = new.stratum)) +
+  scale_x_continuous(name = "Moisture") + 
+  scale_y_continuous(name = "Light") +
+  stat_ellipse(type="norm",size=1.5)+ 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+        axis.text.x=element_text(colour="black"),
+        axis.text.y=element_text(colour="black"),
+        text = element_text(size=16))+
+  scale_colour_manual(values = c("Dry heath" = "darkorchid", "Mire" = "springgreen", "Forest mire" = "lightseagreen","Mull forest" = "darkgreen"))
+print(c)
+dev.off()
+
+Env$new.stratum[nul] <- "Rotational field"
+pdf(width=5.5, height=4,"figures/Ellenberg_NL.pdf")
+d <- ggplot(Data[c(nul,to,tre,syv,ni),], aes(ellenberg_n, ellenberg_l, color = new.stratum)) +
+  scale_x_continuous(name = "Fertility") + 
+  scale_y_continuous(name = "Light") +
+  stat_ellipse(type="norm",size=1.5) + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+        axis.text.x=element_text(colour="black"),
+        axis.text.y=element_text(colour="black"),
+        text = element_text(size=16))+
+  scale_colour_manual(values = c("Rotational field" = "red", "Dry heath" = "darkorchid", 
+                                 "Dry grassland" = "orange", "Mull forest" = "darkgreen",
+                                 "Swamp forest"="royalblue"))
+print(d)
+dev.off()
+
+# add predicted Ellenberg values and confidenceintervals for a target site: 
+Ell <- read.table(here::here("data","PredictionEllenbergValuesGAM07032019.txt"))
+Ell$Rmax <- Ell$R + Ell$RSE
+Ell$Rmin <- Ell$R - Ell$RSE
+Ell$Lmax <- Ell$L + Ell$LSE
+Ell$Lmin <- Ell$L - Ell$LSE
+Ell$Nmax <- Ell$N + Ell$NSE
+Ell$Nmin <- Ell$N - Ell$NSE
+Ell$Fmax <- Ell$M + Ell$MSE
+Ell$Fmin <- Ell$M - Ell$MSE
+colnames(Ell)[c(2,4,6,8)] <- c("ellenberg_n","ellenberg_f", "ellenberg_r", "ellenberg_l")
+
+########### ...with predictions ###########
+#sample(c(1:130),20)
+samples <- c(67,104,40,70,94,13,84,34,12,114,128,61,124,113,46,81,115,74,45,5)
+
+for (i in 1:length(samples)){
+  print(a + annotate("point",size = 3, shape = 19, color = "blue", x = Data$ellenberg_r[samples[i]], y = Data$ellenberg_l[samples[i]]) +
+          annotate("segment", x = Ell$Rmin[samples[i]], xend = Ell$Rmax[samples[i]], y = Ell$ellenberg_l[samples[i]], yend = Ell$ellenberg_l[samples[i]],
+                   colour = "black") + 
+          annotate("segment", x = Ell$ellenberg_r[samples[i]], xend = Ell$ellenberg_r[samples[i]], y = Ell$Lmin[samples[i]], yend = Ell$Lmax[samples[i]],
+                   colour = "black"))
+ here::here("plots",paste(paste("SpillekortGAM",i,"Ellenberg_RL", sep="_"),"pdf", sep=".")) 
+ ggsave(here::here("plots",paste(paste("SpillekortGAM",i,"Ellenberg_RL", sep="_"),"pdf", sep=".")), width=5.5, height=4, device=cairo_pdf)
+}
+
+for (i in 1:length(samples)){
+  print(b + annotate("point",size = 3, shape = 19, color = "blue", x = Data$ellenberg_r[samples[i]], y = Data$ellenberg_f[samples[i]]) +
+          annotate("segment", x = Ell$Rmin[samples[i]], xend = Ell$Rmax[samples[i]], y = Ell$ellenberg_f[samples[i]], yend = Ell$ellenberg_f[samples[i]],
+                   colour = "black") + 
+          annotate("segment", x = Ell$ellenberg_r[samples[i]], xend = Ell$ellenberg_r[samples[i]], y = Ell$Fmin[samples[i]], yend = Ell$Fmax[samples[i]],
+                   colour = "black"))
+  ggsave(here::here("plots",paste(paste("SpillekortGAM",i,"Ellenberg_RF", sep="_"),"pdf", sep=".")), width=5.5, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+for (i in 1:length(samples)){
+  print(c + annotate("point",size = 3, shape = 19, color = "blue", x = Env$ellenberg_f[samples[i]], y = Env$ellenberg_l[samples[i]]) +
+          annotate("segment", x = Ell$Fmin[samples[i]], xend = Ell$Fmax[samples[i]], y = Ell$ellenberg_l[samples[i]], yend = Ell$ellenberg_l[samples[i]],
+                   colour = "black") + 
+          annotate("segment", x = Ell$ellenberg_f[samples[i]], xend = Ell$ellenberg_f[samples[i]], y = Ell$Lmin[samples[i]], yend = Ell$Lmax[samples[i]],
+                   colour = "black"))
+  ggsave(here::here("plots",paste(paste("SpillekortGAM",i,"Ellenberg_FL", sep="_"),"pdf", sep=".")), width=5.5, height=4, device=cairo_pdf)
+  dev.off()
+}
+Data$new.stratum[nul] <- "Rotational field"
+for (i in 1:length(samples)){
+  print(d + annotate("point",size = 3, shape = 19, color = "blue", x = Env$ellenberg_n[samples[i]], y = Env$ellenberg_l[samples[i]]) +
+          annotate("segment", x = Ell$Nmin[samples[i]], xend = Ell$Nmax[samples[i]], y = Ell$ellenberg_l[samples[i]], yend = Ell$ellenberg_l[samples[i]],
+                   colour = "black") + 
+          annotate("segment", x = Ell$ellenberg_n[samples[i]], xend = Ell$ellenberg_n[samples[i]], y = Ell$Lmin[samples[i]], yend = Ell$Lmax[samples[i]],
+                   colour = "black"))
+  ggsave(here::here("plots",paste(paste("SpillekortGAM",i,"Ellenberg_NL", sep="_"),"pdf", sep=".")), width=5.5, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+############ Figures of QDA results #################
+# import predictions from QDA
+Prediction <- read.table(here::here("data","HabClassPredictions.txt"))
+
+#Highforest
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,3],x = Prediction[,3], y = Prediction[,5])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "HighForest", breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],5]), color="red"))
+  ggsave(here::here("data",paste(paste("BinaryPred",i,"Highforest", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Forest
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,6],x = Prediction[,6], y = Prediction[,8])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Forest",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],8]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Forest", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Agriculture
+names(Prediction)
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,9],x = Prediction[,9], y = Prediction[,11])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Agriculture",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],11]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Agriculture", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Beech
+names(Prediction)
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,13],x = Prediction[,13], y = Prediction[,15])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Beech",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],15]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Beech", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Oak
+names(Prediction)
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,16],x = Prediction[,16], y = Prediction[,18])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Oak",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],18]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Oak", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Willow
+names(Prediction)
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,19],x = Prediction[,19], y = Prediction[,21])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Willow",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],21]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Willow", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Dwarfshrubs
+names(Prediction)
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,23],x = Prediction[,23], y = Prediction[,25])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Dwarfshrubs",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],25]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Dwarfshrubs", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Alder
+names(Prediction)
+Prediction$Alder <- Data$Alnus
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,26],x = Prediction[,26], y = Prediction[,28])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Alder",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],28]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Alder", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Phragmites
+names(Prediction)
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,29],x = Prediction[,29], y = Prediction[,31])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Reed",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],31]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Reed", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#Jutland
+names(Prediction)
+for (i in 1:length(samples)){ 
+  print(ggplot(Prediction, aes(group=Prediction[,33],x = Prediction[,33], y = Prediction[,35])) +  
+          geom_boxplot(fill = "grey", colour = "black") +
+          scale_x_discrete(name = "Jutland",breaks = seq(0, 1,1),limits=c(0, 1)) + 
+          scale_y_continuous(name = "Probability", breaks = seq(0, 1,1), limits=c(0,1)) +
+          theme_bw() + theme(text=element_text(size=20),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                             panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+                             legend.title=element_blank(),legend.key = element_rect(fill = "white"),
+                             axis.text.x=element_text(colour="black"),
+                             axis.text.y=element_text(colour="black"))+
+          geom_hline(aes(yintercept=Prediction[samples[i],35]), color="red"))
+  ggsave(here::here("plots",paste(paste("BinaryPred",i,"Jutland", sep="_"),"pdf", sep=".")), width=4, height=4, device=cairo_pdf)
+  dev.off()
+}
+
+#### END ####
